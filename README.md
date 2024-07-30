@@ -12,19 +12,11 @@
 
 ##### 2.1.1  概念图片
 
-本实验中，内外群体分别选自亚裔群体和白人群体。从Chicago Face Database中选取图片16张，其中亚裔群体图片8张（男女各半），白人群体图片8张（男女各半）。
+本实验中，内外群体分别选自亚裔群体和白人群体。从Chicago Face Database中选取图片16张，其中亚裔群体图片8张（男女各半），白人群体图片8张（男女各半）。以下两张图片是亚裔女性和白人男性的例图：
 
 ![asian1.jpg](https://s2.loli.net/2024/07/30/chBWjNGEpz1mRXx.jpg)
 
-<center>
-    图1（内外群体例图，如亚裔女性）
-</center>
-
 ![white2.jpg](https://s2.loli.net/2024/07/30/xOVzsB1MyNdmkIn.jpg)
-
-<center>
-    图2（内外群体例图，如白人男性）
-</center>
 
 ##### 2.1.2  属性词汇
 
