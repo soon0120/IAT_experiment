@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IAT Experiment</title>
+    <script src="https://unpkg.com/jspsych@7.3.4"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.3"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-iat-html@1.1.3"></script>
+    <link href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .flex-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Full viewport height */
+            padding: 20px;
+        }
+
+        .image-container {
+            max-width: 100%;
+            max-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .responsive-img {
+            max-width: 25%;
+            height: auto;
+        }
+
+        .words-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%; /* Ensures the container takes the full height available */
+        }
+
+        .words-font {
+            font-size: 3em; /* Adjust the font size as needed */
+            line-height: 1.5; /* Line height for proper spacing */
+            text-align: center; /* Center text within the words container */
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // 初始化jsPsych
+        var jsPsych = initJsPsych({
+            on_finish: function() {
+            // 获取实验数据并将其转换为CSV格式
+            var csvData = jsPsych.data.get().csv();
+            // 创建一个Blob对象，包含CSV数据
+            var blob = new Blob([csvData], { type: 'text/csv' });
+            // 创建一个<a>元素，用于下载文件
+            var link = document.createElement('a');
+            // 设置下载文件的默认文件名
+            link.setAttribute('download', 'iat_experiment_data.csv');
+            // 为Blob创建一个URL，并设置为<a>元素的href属性
+            link.href = URL.createObjectURL(blob);
+            // 将<a>元素添加到文档中，然后模拟点击以触发下载
+            document.body.appendChild(link);
+            link.click();
+            // 下载完成后移除<a>元素
+            document.body.removeChild(link);
+            jsPsych.data.displayData();
+            }
+        });
+
+        // 创建时间线
+        var timeline = [];
+
+        // 预加载图片
+        var preload = {
+            type: jsPsychPreload,
+            images: [
+                'img/asian1.jpg', 'img/asian2.jpg', 'img/asian3.jpg', 'img/asian4.jpg',
+                'img/asian5.jpg', 'img/asian6.jpg', 'img/asian7.jpg', 'img/asian8.jpg',
+                'img/white1.jpg', 'img/white2.jpg', 'img/white3.jpg', 'img/white4.jpg',
+                'img/white5.jpg', 'img/white6.jpg', 'img/white7.jpg', 'img/white8.jpg',
+            ]
+            };
+        timeline.push(preload);
+
+        // 欢迎参与实验
+        var welcome = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+            <div class="flex-container">
+            <h2> 欢迎参与实验！</h2>
+            <h2> 请按任意键开始实验。</h2>
+            </div>
+            `,
+            };
+        timeline.push(welcome);
+
+        // 收集被试信息
+        var participant_info = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+                <div style="text-align: left; width: 300px;">
+                    <h2>被试基本信息收集：</h2>
+                    <form id="participant-info-form">
+                        <label for="id">被试 ID: </label><input name="id" type="text" required><br><br>
+                        <label for="age">年龄: </label><input name="age" type="number" required><br><br>
+                        <label for="hand">利手（"0" : 左利手, "1" : 右利手）: </label><input name="hand" type="text" required><br><br>
+                        <button type="button" id="submit-info">提交</button>
+                    </form>
+                    <p>请按【提交】继续实验。</p>
+                </div>
+            </div>
+        `,
+            choices: "NO_KEYS",
+            on_load: function() {
+                document.getElementById('submit-info').addEventListener('click', function() {
+                    var form = document.getElementById('participant-info-form');
+                    var formData = new FormData(form);
+                    var responses = {};
+                    formData.forEach(function(value, key) {
+                        responses[key] = value;
+                    });
+
+                    // Add the responses to jsPsych data
+                    jsPsych.data.addProperties(responses);
+
+                    // Automatically move to the next trial
+                    jsPsych.pluginAPI.cancelAllKeyboardResponses();
+                    jsPsych.finishTrial();
+                });
+            }
+        };
+        timeline.push(participant_info);
+
+        //指导语
+        var instructions = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+            <style>
+                .left-align {
+                    text-align: left;
+                    display: inline-block;
+                }
+                .centered-content {
+                    text-align: center;
+                } 
+            </style>
+            <div class="centered-content">
+                <h3> 欢迎参加本次内隐联想测验(IAT)实验</h3>
+                <p> 接下来的任务中, 将要求你对一组呈现的词语或图片进行分类。</p>
+                <div class="left-align">
+                    <h3> 注意</h3>
+                    <p> · 请把双手食指放在'E'键和'I'键上以确保能尽快反应。</p>
+                    <p> · 左上角和右上角的两个标签将给予类别提示。</p>
+                    <p> · 如果您的判断发生错误, 刺激下方将会出现一个红叉, 请您及时修正判断。</p>
+                    <p> · 全程请保持注意力集中, 尽量快速且准确地做出判断。</p>
+                </div>
+                <p> 如果明白上述指导语, 请按任意键以继续实验!
+            </div>
+            `,
+            post_trial_gap: 2000
+        };
+        timeline.push(instructions);
+
+        // 定义图片刺激集1
+        var images_stimuli_1 = [
+            {stimulus: '<div class="image-container"><img src="img/asian1.jpg" class="responsive-img" alt="Asian Image 1"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian2.jpg" class="responsive-img" alt="Asian Image 2"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian3.jpg" class="responsive-img" alt="Asian Image 3"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian4.jpg" class="responsive-img" alt="Asian Image 4"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian5.jpg" class="responsive-img" alt="Asian Image 5"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian6.jpg" class="responsive-img" alt="Asian Image 6"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian7.jpg" class="responsive-img" alt="Asian Image 7"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/asian8.jpg" class="responsive-img" alt="Asian Image 8"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white1.jpg" class="responsive-img" alt="White Image 1"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white2.jpg" class="responsive-img" alt="White Image 2"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white3.jpg" class="responsive-img" alt="White Image 3"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white4.jpg" class="responsive-img" alt="White Image 4"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white5.jpg" class="responsive-img" alt="White Image 5"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white6.jpg" class="responsive-img" alt="White Image 6"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white7.jpg" class="responsive-img" alt="White Image 7"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white8.jpg" class="responsive-img" alt="White Image 8"></div>', stim_key_association: 'right'},
+        ];
+
+        // 定义图片刺激集2
+        var images_stimuli_2 = [
+            {stimulus: '<div class="image-container"><img src="img/asian1.jpg" class="responsive-img" alt="Asian Image 1"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian2.jpg" class="responsive-img" alt="Asian Image 2"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian3.jpg" class="responsive-img" alt="Asian Image 3"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian4.jpg" class="responsive-img" alt="Asian Image 4"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian5.jpg" class="responsive-img" alt="Asian Image 5"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian6.jpg" class="responsive-img" alt="Asian Image 6"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian7.jpg" class="responsive-img" alt="Asian Image 7"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/asian8.jpg" class="responsive-img" alt="Asian Image 8"></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container"><img src="img/white1.jpg" class="responsive-img" alt="White Image 1"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white2.jpg" class="responsive-img" alt="White Image 2"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white3.jpg" class="responsive-img" alt="White Image 3"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white4.jpg" class="responsive-img" alt="White Image 4"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white5.jpg" class="responsive-img" alt="White Image 5"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white6.jpg" class="responsive-img" alt="White Image 6"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white7.jpg" class="responsive-img" alt="White Image 7"></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container"><img src="img/white8.jpg" class="responsive-img" alt="White Image 7"></div>', stim_key_association: 'left'},
+        ];
+
+        // 定义词汇刺激集
+        var words_stimuli = [
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">愉快</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">和平</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">美好</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">善良</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">光荣</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">成功</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">坚韧</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">乐观</div></div>', stim_key_association: 'left'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">苦恼</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">糟糕</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">肮脏</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">失败</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">邪恶</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">伤害</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">悲观</div></div>', stim_key_association: 'right'},
+            {stimulus: '<div class="image-container words-container"><div class="responsive-img words-font">沮丧</div></div>', stim_key_association: 'right'},
+        ];
+
+        // 阶段一：概念图片判断
+        // 指导语
+        var instructions_1 = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="flex-container">
+                    <h2>现在进行概念图片判别任务。</h2>
+                    <p>所呈现图片是亚裔图片请按 "E" 键，白人图片请按 "I" 键。</p>
+                    <p>请尽可能快且准确地做出反应。</p>
+                    <h2>如果明白该指导语, 请按任意键继续。</h2>
+                </div>
+                `
+            };
+        timeline.push(instructions_1);
+
+        // 图片trials
+        var trial_images_1 = {
+            type: jsPsychIatHtml,
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            stim_key_association: jsPsych.timelineVariable('stim_key_association'),
+            html_when_wrong: '<span style="color: red; font-size: 80px">X</span>',
+            bottom_instructions: '<p>If you press the wrong key, a red X will appear. Press the other key to continue</p>',
+            force_correct_key_press: true,
+            display_feedback: true,
+            trial_duration: 3000, // Only if display_feedback is false
+            left_category_key: 'e',
+            right_category_key: 'i',
+            left_category_label: ['亚裔'],
+            right_category_label: ['白人'],
+            response_ends_trial: true,
+        };
+
+        // 将图片试次添加到时间轴并随机化顺序
+        timeline.push({
+            timeline: [trial_images_1],
+            timeline_variables: images_stimuli_1,
+            randomize_order: true
+        });
+
+        // 阶段二：属性词汇判断
+        // 指导语
+        var instructions_2 = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="flex-container">
+                    <h2>现在将进行词汇判别任务。</h2>
+                    <p>所呈现的词汇是积极词汇请按“E”, 消极词汇请按“I”。</p>
+                    <p>请尽可能快且准确地做出反应。</p>
+                    <h2>如果明白该指导语, 请按任意键继续。</h2>
+                </div>
+            `
+        };
+        timeline.push(instructions_2);
+
+        // 词汇trials
+        var trial_words = {
+            type: jsPsychIatHtml,
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            stim_key_association: jsPsych.timelineVariable('stim_key_association'),
+            html_when_wrong: '<span style="color: red; font-size: 80px">X</span>',
+            bottom_instructions: '<p>If you press the wrong key, a red X will appear. Press the other key to continue</p>',
+            force_correct_key_press: true,
+            display_feedback: true,
+            trial_duration: 3000, // Only if display_feedback is false
+            left_category_key: 'e',
+            right_category_key: 'i',
+            left_category_label: ['积极词汇'],
+            right_category_label: ['消极词汇'],
+            response_ends_trial: true
+        };
+
+        // 将试次添加到时间轴并随机化顺序
+        timeline.push({
+            timeline: [trial_words],
+            timeline_variables: words_stimuli,
+            randomize_order: true
+        });
+
+        // 阶段三：概念图片和属性词汇判断
+        // 指导语
+        var instructions_3 = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="flex-container">
+                <h2>现在将进行词汇和图片判别任务。</h2>
+                <p>看到亚裔图片或积极词汇请按 "E" 键。</p>
+                <p>看到白人图片或消极词汇请按 "I" 键。</p>
+                <p>请尽可能快且准确地做出反应。</p>
+                <h2>如果明白该指导语, 请按任意键继续。</h2>
+                </div>
+            `
+        };
+        timeline.push(instructions_3);
+
+         // 随机化图片和词汇刺激顺序
+        images_stimuli = jsPsych.randomization.shuffle(images_stimuli_1);
+        words_stimuli = jsPsych.randomization.shuffle(words_stimuli);
+
+        // 混合刺激，交替图片和文字
+        var combined_stimuli_1 = [];
+            for (var i = 0; i < Math.max(images_stimuli.length, words_stimuli.length); i++) {
+            if (i < images_stimuli.length) {
+                combined_stimuli_1.push(images_stimuli[i]);
+            }
+            if (i < words_stimuli.length) {
+                combined_stimuli_1.push(words_stimuli[i]);
+            }
+        }
+
+        // 混合trial
+        var combined_trial_1 = {
+            type: jsPsychIatHtml,
+            stimulus:jsPsych.timelineVariable('stimulus'),
+            stim_key_association: jsPsych.timelineVariable('stim_key_association'),
+            html_when_wrong: '<span style="color: red; font-size: 80px">X</span>',
+            bottom_instructions: '<p>If you press the wrong key, a red X will appear. Press the other key to continue</p>',
+            force_correct_key_press: true,
+            display_feedback: true,
+            trial_duration: 3000, // Only if display_feedback is false
+            left_category_key: 'e',
+            right_category_key: 'i',
+            left_category_label: ['亚裔', '积极词汇'],
+            right_category_label: ['白人', '消极词汇'],
+            response_ends_trial: true
+        };
+
+        // 添加试次到时间轴
+        timeline.push({
+            timeline: [combined_trial_1],
+            timeline_variables: combined_stimuli_1,
+            randomize_order: false
+        });
+
+        // 阶段四：概念图片反向判断
+        // 指导语
+        var instructions_4 = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="flex-container">
+                    <h2>现在进行图片判别任务，请注意按键有发生变化。</h2>
+                    <p>所呈现图示是白人请按 "E" 键，亚裔请按 "I" 键。</p>
+                    <p>请尽可能快且准确地做出反应。</p>
+                    <h2>如果明白该指导语, 请按任意键继续。</h2>
+                </div>
+            `
+        };
+        timeline.push(instructions_4);
+
+        // 图片trial
+        var trial_images_2 = {
+            type: jsPsychIatHtml,
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            stim_key_association: jsPsych.timelineVariable('stim_key_association'),
+            html_when_wrong: '<span style="color: red; font-size: 80px">X</span>',
+            bottom_instructions: '<p>If you press the wrong key, a red X will appear. Press the other key to continue</p>',
+            force_correct_key_press: true,
+            display_feedback: true,
+            trial_duration: 3000, // Only if display_feedback is false
+            left_category_key: 'e',
+            right_category_key: 'i',
+            left_category_label: ['白人'],
+            right_category_label: ['亚裔'],
+            response_ends_trial: true
+        };
+
+        // 将试次添加到时间轴并随机化顺序
+        timeline.push({
+            timeline: [trial_images_2],
+            timeline_variables: images_stimuli_2,
+            randomize_order: true
+        });
+
+        // 阶段五：概念图片和属性词汇反向判断
+        // 指导语
+        var instructions_5 = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div class="flex-container">
+                    <h2>现在将进行词汇和图片判别任务。</h2>
+                    <p>看到白人图片或积极词汇请按 "E" 键。</p>
+                    <p>看到亚裔图片或消极词汇请按 "I" 键。</p>
+                    <p>请尽可能快且准确地做出反应。</p>
+                    <h2>如果明白该指导语, 请按任意键继续。</h2>
+                </div>
+            `
+            };
+        timeline.push(instructions_5);
+
+        // 随机化刺激顺序
+        images_stimuli = jsPsych.randomization.shuffle(images_stimuli_2);
+        words_stimuli = jsPsych.randomization.shuffle(words_stimuli);
+
+        // 混合刺激，交替图片和文字
+        var combined_stimuli_2 = [];
+        for (var i = 0; i < Math.max(images_stimuli.length, words_stimuli.length); i++) {
+        if (i < images_stimuli.length) {
+            combined_stimuli_2.push(images_stimuli[i]);
+        }
+        if (i < words_stimuli.length) {
+            combined_stimuli_2.push(words_stimuli[i]);
+        }
+        }
+
+        // 图片和词汇trial
+        var combined_trial_2 = {
+            type: jsPsychIatHtml,
+            stimulus: jsPsych.timelineVariable('stimulus'),
+            stim_key_association: jsPsych.timelineVariable('stim_key_association'),
+            html_when_wrong: '<span style="color: red; font-size: 80px">X</span>',
+            bottom_instructions: '<p>If you press the wrong key, a red X will appear. Press the other key to continue</p>',
+            force_correct_key_press: true,
+            display_feedback: true,
+            trial_duration: 3000, // Only if display_feedback is false
+            left_category_key: 'e',
+            right_category_key: 'i',
+            left_category_label: ['白人', '积极词汇'],
+            right_category_label: ['亚裔', '消极词汇'],
+            response_ends_trial: true
+        };
+
+        // 添加试次到时间轴
+        timeline.push({
+            timeline: [combined_trial_2],
+            timeline_variables: combined_stimuli_2,
+            randomize_order: false
+        });
+
+        // 结束语
+        var end = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+            <div class="flex-container">
+                <h2>实验结束，谢谢参与！</h2>
+                <h2>按任意键退出实验。</h2>
+            </div>
+            `
+        };
+        timeline.push(end);
+
+        // 开始实验
+        jsPsych.run(timeline);
+
+</script>
+</html>
