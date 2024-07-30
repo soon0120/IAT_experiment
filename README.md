@@ -14,13 +14,13 @@
 
 本实验中，内外群体分别选自亚裔群体和白人群体。从Chicago Face Database中选取图片16张，其中亚裔群体图片8张（男女各半），白人群体图片8张（男女各半）。
 
-<img src="D:\MyExperiment_jspsych\img\asian1.jpg" style="zoom:25%;" />
+![asian1.jpg](https://s2.loli.net/2024/07/30/chBWjNGEpz1mRXx.jpg)
 
 <center>
     图1（内外群体例图，如亚裔女性）
 </center>
 
-![](D:\MyExperiment_jspsych\img\white2.jpg)
+![white2.jpg](https://s2.loli.net/2024/07/30/xOVzsB1MyNdmkIn.jpg)
 
 <center>
     图2（内外群体例图，如白人男性）
